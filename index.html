@@ -2,15 +2,20 @@
 <html>
   <head>
     <title>Socket.IO chat</title>
-    <style>
+    <!-- <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { font: 13px Helvetica, Arial; }
       form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
-      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #send-message-form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      #send-message-form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
       #messages { list-style-type: none; margin: 0; padding: 0; }
       #messages li { padding: 5px 10px; }
       #messages li:nth-child(odd) { background: #eee; }
+    </style> -->
+    <style>
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #send-message-form { position: fixed; bottom: 0; width: 100%; padding: 3px;}
+      #send-message-form input { width: 90%;}
     </style>
   </head>
 
@@ -20,21 +25,51 @@
   <script>
       $(function () {
         var socket = io();
-        $('form').submit(function() {
-            socket.emit('chat message', $('#m').val());
-            $('#m').val('');
+        var nickname;
+        
+        $('#send-message-form').submit(function() {
+            // only send message if they've made a nickname
+            if (nickname != null) {
+                var emit_string = nickname + ": " + $('#m').val();
+                socket.emit('chat message', emit_string);
+                $('#m').val('');
+            }
+            else {
+                alert("You must set a nickname before you can send a message!");
+            }
             return false;
         });
+
+        $('#set-nickname-form').submit(function() {
+            nickname = $('#nickname-input').val();
+            socket.emit('set nickname', $('#nickname-input').val());
+            $('#set-nickname-form').remove();
+            return false;
+        });
+
         socket.on('chat message', function(msg) {
             $('#messages').append($('<li>').text(msg));
         });
+        
+        // when someone connects
+        socket.on('user connected', function(name) {
+            $('#messages').append($('<li>').text(name + " has joined the chat :)"));
+        })
+
+        // when someone disconnects
+        socket.on('user disconnected', function(msg) {
+            $('#messages').append($('<li>').text(msg));
+        })
       });
   </script>
 
   <body>
+    <form id="set-nickname-form" action="">
+        Username: <input id="nickname-input" autocomplete="off" /><button>Submit</button>
+    </form>
     <ul id="messages"></ul>
-    <form action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
+    <form id="send-message-form" action="">
+        <input id="m" autocomplete="off" /><button>Send</button>
     </form>
   </body>
 </html>
