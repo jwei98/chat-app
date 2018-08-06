@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
     <title>Socket.IO chat</title>
@@ -40,6 +40,7 @@
             return false;
         });
 
+        // when someone submits a nickname
         $('#set-nickname-form').submit(function() {
             nickname = $('#nickname-input').val();
             socket.emit('set nickname', $('#nickname-input').val());
@@ -47,13 +48,16 @@
             return false;
         });
 
+        // when someone sends a chat message
         socket.on('chat message', function(msg) {
             $('#messages').append($('<li>').text(msg));
         });
         
         // when someone connects
-        socket.on('user connected', function(name) {
+        socket.on('user connected', function(data) {
+            var name = data.name;
             $('#messages').append($('<li>').text(name + " has joined the chat :)"));
+            $('#online-users').append($('<li>').text(name));
         })
 
         // when someone disconnects
@@ -67,6 +71,14 @@
     <form id="set-nickname-form" action="">
         Username: <input id="nickname-input" autocomplete="off" /><button>Submit</button>
     </form>
+    <h3>Online Users</h3>
+    <ul id="online-users">
+        {{#each users}}
+            <li>{{this}}</li>
+        {{/each}}
+
+    </ul>
+    <h3>Messages</h3>
     <ul id="messages"></ul>
     <form id="send-message-form" action="">
         <input id="m" autocomplete="off" /><button>Send</button>
