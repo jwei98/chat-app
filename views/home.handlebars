@@ -53,7 +53,7 @@
             $('#messages').append($('<li>').text(msg));
         });
         
-        // when someone connects
+        // when new someone connects
         socket.on('user connected', function(data) {
             var name = data.name;
             $('#messages').append($('<li>').text(name + " has joined the chat :)"));
