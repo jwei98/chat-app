@@ -9,44 +9,41 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
 // keep track of who's online
-var online_users = [];
+var online_users = new Map();
 
 // serve main page
 app.get('/', function(req, res) {
-	res.render('home', {users: online_users});
+	res.render('home', {users: Array.from(online_users.values())});
 });
 
 // callback functions
-// TODO: refactor to another page
-function disconnect() {
-	io.emit('user disconnected', "a user disconnected :(");
-	// add logic to remove username from list when they disconnect
-	console.log('user disconnected');
+// TODO: refactor callbadks to another page
+function disconnect(socket_id) {
+	var name = online_users.get(socket_id);
+	online_users.delete(socket_id);
+	io.emit('user disconnected', name);
 }
 
 function chat_message(msg) {
 	 io.emit('chat message', msg);
 }
 
-function set_nickname(name) {
-	// we use io here instead of socket, because if socket disconnected
-	// then we no longer have access to it
-	online_users.push(name);
-	io.emit('user connected', {
-		name: name,
-		onlineUsers: online_users
-	});
-	console.log('online users: ' + online_users);
+function set_nickname(socket_id, name) {
+	online_users.set(socket_id, name);
+	io.emit('user connected', name);
 }
 
+// socket watchers
 io.on('connection', function(socket) {
-	console.log('an anonymous user connected');
-	
-	socket.on('disconnect', disconnect);
-	
-	socket.on('chat message', chat_message);
+	console.log(socket.id + " has connected!");
 
-	socket.on('set nickname', set_nickname);
+	socket.on('disconnect', function() {
+		disconnect(socket.id);
+	});
+	socket.on('chat message', chat_message);
+	socket.on('set nickname', function (name) {
+		set_nickname(socket.id, name);
+	});
 });
 
 http.listen(3000, function() {

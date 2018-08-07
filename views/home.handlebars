@@ -13,9 +13,11 @@
       #messages li:nth-child(odd) { background: #eee; }
     </style> -->
     <style>
+      #messages-div {float: left; display: inline-block; width: 65%;}
       #messages { list-style-type: none; margin: 0; padding: 0; }
-      #send-message-form { position: fixed; bottom: 0; width: 100%; padding: 3px;}
+      #send-message-form { position: fixed; bottom: 0; width: 65%; padding: 3px;}
       #send-message-form input { width: 90%;}
+      #online-users-div {float: right; display: inline-block; padding-right: 10px; width: 30%;}
     </style>
   </head>
 
@@ -54,34 +56,40 @@
         });
         
         // when new someone connects
-        socket.on('user connected', function(data) {
-            var name = data.name;
+        socket.on('user connected', function(name) {
             $('#messages').append($('<li>').text(name + " has joined the chat :)"));
-            $('#online-users').append($('<li>').text(name));
+            $('#online-users').append($('<li>').attr("id",name).text(name));
         })
 
         // when someone disconnects
-        socket.on('user disconnected', function(msg) {
-            $('#messages').append($('<li>').text(msg));
+        socket.on('user disconnected', function(name) {
+            $('#online-users li').remove("#" + name);
+            $('#messages').append($('<li>').text(name + " disconnected from server :("));
         })
       });
   </script>
 
   <body>
+
     <form id="set-nickname-form" action="">
         Username: <input id="nickname-input" autocomplete="off" /><button>Submit</button>
     </form>
-    <h3>Online Users</h3>
-    <ul id="online-users">
-        {{#each users}}
-            <li>{{this}}</li>
-        {{/each}}
 
-    </ul>
-    <h3>Messages</h3>
-    <ul id="messages"></ul>
-    <form id="send-message-form" action="">
-        <input id="m" autocomplete="off" /><button>Send</button>
-    </form>
+    <div id="online-users-div">
+        <h3>Online Users</h3>
+        <ul id="online-users">
+            {{#each users}}
+                <li id={{this}}>{{this}}</li>
+            {{/each}}
+        </ul>
+    </div>
+
+    <div id="messages-div">
+        <h3>Messages</h3>
+        <ul id="messages"></ul>
+        <form id="send-message-form" action="">
+            <input id="m" autocomplete="off" /><button>Send</button>
+        </form>
+    </div>
   </body>
 </html>
