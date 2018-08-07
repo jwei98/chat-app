@@ -18,32 +18,32 @@ app.get('/', function(req, res) {
 
 // callback functions
 // TODO: refactor callbadks to another page
-function disconnect(socket_id) {
+
+function disconnect() {
+	socket_id = this.id;
+	console.log(name + '(' + socket_id + ') disconnected from server');
 	var name = online_users.get(socket_id);
 	online_users.delete(socket_id);
 	io.emit('user disconnected', name);
 }
 
 function chat_message(msg) {
-	 io.emit('chat message', msg);
+	io.emit('chat message', msg);
 }
 
-function set_nickname(socket_id, name) {
+function set_nickname(name) {
+	socket_id = this.id;
+	console.log(socket_id + ' set username to: ' + name);
 	online_users.set(socket_id, name);
 	io.emit('user connected', name);
 }
 
 // socket watchers
 io.on('connection', function(socket) {
-	console.log(socket.id + " has connected!");
-
-	socket.on('disconnect', function() {
-		disconnect(socket.id);
-	});
-	socket.on('chat message', chat_message);
-	socket.on('set nickname', function (name) {
-		set_nickname(socket.id, name);
-	});
+	console.log(socket.id + ' connected to server...');
+	socket.on('disconnect', disconnect.bind(socket));
+	socket.on('chat message', chat_message.bind(socket));
+	socket.on('set nickname', set_nickname.bind(socket)); 
 });
 
 http.listen(3000, function() {
